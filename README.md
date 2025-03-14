@@ -1,6 +1,9 @@
 # BlobCrypt
 Download blob from Azure Blob Storage. Decrypt the contents with PGP. Write output to a file.
 
+## Requirements
+You must have the [azure-cli](https://learn.microsoft.com/en-us/cli/azure/get-started-with-azure-cli) installed and you must be logged in (`az login`).
+
 ## Installation
 The following shows how to build this from source and install the script into your $PATH.
 ```bash
