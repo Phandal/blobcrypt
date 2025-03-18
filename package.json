@@ -16,9 +16,9 @@
   },
   "type": "module",
   "keywords": [],
-  "author": "",
+  "author": "Bailey Feldewerd <bfeld.111@gmail.com>",
   "license": "ISC",
-  "description": "",
+  "description": "Encrypt/Decrypt (with PGP password) Azure Blob Storage blobs",
   "dependencies": {
     "@azure/identity": "^4.8.0",
     "@azure/keyvault-secrets": "^4.9.0",
