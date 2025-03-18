@@ -22,5 +22,7 @@ set these in your environment.
 
 Provide the name of the blob from blob storage along with a path to write the output to.
 ```bash
-blobcrypt blobname path/to/output/file
+blobcrypt encrypt blobname path/to/output/file
+# or
+blobcrypt decrypt blobname path/to/input/file
 ```

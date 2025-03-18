@@ -16,6 +16,7 @@ dotenv.config();
 
 async function main(): Promise<void> {
   const credentials = new DefaultAzureCredential();
+
   let result: args.ParseResult;
   try {
     result = args.parse(process.argv.slice(2));
@@ -23,28 +24,48 @@ async function main(): Promise<void> {
     utils.usage(err);
     return;
   }
-  const { title, filepath } = result;
+  const { action, title, filepath } = result;
 
   const vars = environment.read();
 
-  if (fs.existsSync(filepath)) {
-    throw new Error(`file '${filepath}' already exists`);
-  }
-
   const containerClient = new ContainerClient(vars.CONTAINER_URL, credentials);
-
   const blobClient = containerClient.getBlobClient(title);
-  if (!blobClient.exists) {
-    throw new Error(`blob '${blobClient.url}' does not exist`);
-  }
-
   const secretClient = new SecretClient(vars.KEYVAULT_URL, credentials);
   const secretResult = await secretClient.getSecret(vars.SECRET_NAME);
   if (!secretResult.value) {
     throw new Error(`secret '${vars.SECRET_NAME}' does not exist`);
   }
 
-  await actions.decrypt(filepath, secretResult.value, blobClient);
+  switch (action) {
+    case 'encrypt':
+      if (!fs.existsSync(filepath)) {
+        throw new Error(`file '${filepath}' does not exist`);
+      }
+
+      if (await blobClient.exists()) {
+        const response = await utils.promt(
+          `blob '${title}' already exists. Overwrite [y/N]: `,
+        );
+
+        if (!response.toLowerCase().startsWith('y')) {
+          break;
+        }
+      }
+
+      await actions.encrypt(filepath, secretResult.value, blobClient);
+      break;
+    case 'decrypt':
+      if (fs.existsSync(filepath)) {
+        throw new Error(`file '${filepath}' already exists`);
+      }
+
+      if (!blobClient.exists) {
+        throw new Error(`blob '${blobClient.url}' does not exist`);
+      }
+
+      await actions.decrypt(filepath, secretResult.value, blobClient);
+      break;
+  }
 }
 
 main().catch((err) => {

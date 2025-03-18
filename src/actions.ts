@@ -12,13 +12,41 @@ export async function decrypt(
 ): Promise<void> {
   console.error('Fetching blob contents...');
   const blobContents = (await blobClient.downloadToBuffer()).toString('utf8');
+
+  console.error('Decrypting blob contents...');
   const decryptedResult = await pgp.decrypt({
     message: await pgp.readMessage({ armoredMessage: blobContents }),
     passwords: password,
   });
 
+  console.error('Writing decrypted contents to file...');
   fs.writeFileSync(filepath, decryptedResult.data);
   console.error(
-    `Wrote decrypted blob (${decryptedResult.data.length}) to file '${filepath}'`,
+    `Wrote decrypted blob (${decryptedResult.data.length} characters) to file '${filepath}'`,
+  );
+}
+
+/**
+ * Encrypt a file specified by 'filepath', uploading the result to a `blob` in blob storage.
+ */
+export async function encrypt(
+  filepath: string,
+  password: string,
+  blobClient: BlobClient,
+): Promise<void> {
+  console.error('Loading file contents...');
+  const input = fs.readFileSync(filepath).toString('utf8');
+
+  console.error('Encrypting file contents...');
+  const encryptedResult = await pgp.encrypt({
+    message: await pgp.createMessage({ text: input }),
+    passwords: password,
+  });
+
+  console.error('Writing encrypted contents to blob...');
+  const blockClient = blobClient.getBlockBlobClient();
+  await blockClient.uploadData(Buffer.from(encryptedResult));
+  console.error(
+    `Wrote encrypted file (${input.length} characters) to blob '${blobClient.url}'`,
   );
 }
