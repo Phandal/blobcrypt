@@ -33,17 +33,19 @@ async function main(): Promise<void> {
   const secretClient = new SecretClient(vars.KEYVAULT_URL, credentials);
   const secretResult = await secretClient.getSecret(vars.SECRET_NAME);
   if (!secretResult.value) {
-    throw new Error(`secret '${vars.SECRET_NAME}' does not exist`);
+    console.error(`secret '${vars.SECRET_NAME}' does not exist`);
+    process.exit(1);
   }
 
   switch (action) {
     case 'encrypt':
       if (!fs.existsSync(filepath)) {
-        throw new Error(`file '${filepath}' does not exist`);
+        console.error(`file '${filepath}' does not exist`);
+        process.exit(1);
       }
 
       if (await blobClient.exists()) {
-        const response = await utils.promt(
+        const response = await utils.prompt(
           `blob '${title}' already exists. Overwrite [y/N]: `,
         );
 
@@ -56,11 +58,18 @@ async function main(): Promise<void> {
       break;
     case 'decrypt':
       if (fs.existsSync(filepath)) {
-        throw new Error(`file '${filepath}' already exists`);
+        const response = await utils.prompt(
+          `file '${filepath}' already exists. Overwrite [y/N]: `,
+        );
+
+        if (!response.toLowerCase().startsWith('y')) {
+          break;
+        }
       }
 
       if (!blobClient.exists) {
-        throw new Error(`blob '${blobClient.url}' does not exist`);
+        console.error(`blob '${blobClient.url}' does not exist`);
+        process.exit(1);
       }
 
       await actions.decrypt(filepath, secretResult.value, blobClient);

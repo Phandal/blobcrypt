@@ -12,7 +12,7 @@ export function usage(err: unknown): void {
   process.exit(1);
 }
 
-export async function promt(q: string): Promise<string> {
+export async function prompt(q: string): Promise<string> {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
