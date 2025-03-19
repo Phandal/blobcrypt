@@ -1,5 +1,5 @@
 export type ParseResult = {
-  action: 'encrypt' | 'decrypt';
+  action: 'encrypt' | 'decrypt' | 'version';
   title: string;
   filepath: string;
 };
@@ -16,6 +16,14 @@ export const UnexpectedArgumentError = (args: string[]) =>
  * Parses the expected args from the command line
  */
 export function parse(argv: string[]): ParseResult {
+  if (argv.length === 1 && (argv[0] === 'version' || argv[0] === '--version')) {
+    return {
+      action: 'version',
+      title: '',
+      filepath: '',
+    };
+  }
+
   if (argv.length < 3) {
     throw MissingArgumentError;
   }

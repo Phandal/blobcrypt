@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 
-// import { ContainerClient } from '@azure/storage-blob';
-
+import packageJSON from '../package.json' with { type: 'json' };
 import * as args from './args.js';
 import * as actions from './actions.js';
 import * as environment from './environment.js';
@@ -25,6 +24,11 @@ async function main(): Promise<void> {
     return;
   }
   const { action, title, filepath } = result;
+
+  if (action === 'version') {
+    console.error(`blobcrypt ${packageJSON.version}`);
+    return;
+  }
 
   const vars = environment.read();
 

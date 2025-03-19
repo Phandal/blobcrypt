@@ -4,7 +4,7 @@ import * as args from './args.js';
 
 describe('the arg module', () => {
   it('parsed args', () => {
-    const want: args.ParseResult = {
+    let want: args.ParseResult = {
       action: 'encrypt',
       title: 'title',
       filepath: '/path',
@@ -12,9 +12,21 @@ describe('the arg module', () => {
     const encResult = args.parse(['encrypt', 'title', '/path']);
     assert.deepEqual(encResult, want);
 
-    want.action = 'decrypt';
+    want = {
+      action: 'decrypt',
+      title: 'title',
+      filepath: '/path',
+    };
     const decResult = args.parse(['decrypt', 'title', '/path']);
     assert.deepEqual(decResult, want);
+
+    want = {
+      action: 'version',
+      title: '',
+      filepath: '',
+    };
+    const verResult = args.parse(['version']);
+    assert.deepEqual(verResult, want);
   });
 
   it('validates the number of args', () => {
