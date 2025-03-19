@@ -7,11 +7,7 @@ You must have the [azure-cli](https://learn.microsoft.com/en-us/cli/azure/get-st
 ## Installation
 The following shows how to build this from source and install the script into your $PATH.
 ```bash
-git clone https://github.com/Phandal/blobcrypt
-cd blobcrypt
-npm i
-npm run build
-npm i -g .
+npm i -g blobcrypt
 ```
 
 ## Usage
