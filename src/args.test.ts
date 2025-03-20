@@ -20,13 +20,17 @@ describe('the arg module', () => {
     const decResult = args.parse(['decrypt', 'title', '/path']);
     assert.deepEqual(decResult, want);
 
-    want = {
-      action: 'version',
-      title: '',
-      filepath: '',
-    };
+    want = args.VersionArgs;
     const verResult = args.parse(['version']);
     assert.deepEqual(verResult, want);
+    const dashVerResult = args.parse(['--version']);
+    assert.deepEqual(dashVerResult, want);
+
+    want = args.HelpArgs;
+    const helResult = args.parse(['help']);
+    assert.deepEqual(helResult, want);
+    const dashHelResult = args.parse(['--help']);
+    assert.deepEqual(dashHelResult, want);
   });
 
   it('validates the number of args', () => {

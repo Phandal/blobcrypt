@@ -1,5 +1,5 @@
 export type ParseResult = {
-  action: 'encrypt' | 'decrypt' | 'version';
+  action: 'encrypt' | 'decrypt' | 'version' | 'help';
   title: string;
   filepath: string;
 };
@@ -12,16 +12,32 @@ export const InvalidActionError = (action: string) =>
 export const UnexpectedArgumentError = (args: string[]) =>
   new Error(`unexpected arguments '${args.join(', ')}'`);
 
+export const VersionArgs: ParseResult = {
+  action: 'version',
+  title: '',
+  filepath: '',
+};
+
+export const HelpArgs: ParseResult = {
+  action: 'help',
+  title: '',
+  filepath: '',
+};
+
 /**
  * Parses the expected args from the command line
  */
 export function parse(argv: string[]): ParseResult {
-  if (argv.length === 1 && (argv[0] === 'version' || argv[0] === '--version')) {
-    return {
-      action: 'version',
-      title: '',
-      filepath: '',
-    };
+  if (argv.length === 1) {
+    const action = argv[0];
+
+    if (action === 'version' || action === '--version') {
+      return VersionArgs;
+    }
+
+    if (action === 'help' || action === '--help') {
+      return HelpArgs;
+    }
   }
 
   if (argv.length < 3) {

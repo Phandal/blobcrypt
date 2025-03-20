@@ -30,6 +30,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (action === 'help') {
+    utils.usage();
+    return;
+  }
+
   const vars = environment.read();
 
   const containerClient = new ContainerClient(vars.CONTAINER_URL, credentials);
