@@ -7,7 +7,7 @@ import * as environment from './environment.js';
 import * as utils from './utils.js';
 import * as dotenv from 'dotenv';
 import * as fs from 'node:fs';
-import { ContainerClient } from '@azure/storage-blob';
+import { ContainerClient, RestError } from '@azure/storage-blob';
 import { DefaultAzureCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
 
@@ -76,7 +76,7 @@ async function main(): Promise<void> {
         }
       }
 
-      if (!blobClient.exists) {
+      if (!(await blobClient.exists())) {
         console.error(`blob '${blobClient.url}' does not exist`);
         process.exit(1);
       }
@@ -87,5 +87,12 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
+  const message =
+    err instanceof RestError
+      ? `Rest Error '${err.code}'`
+      : err instanceof Error
+        ? err.message
+        : 'unexpected fatal error';
+
   console.error(`Unknown Error: ${err.message}`);
 });
