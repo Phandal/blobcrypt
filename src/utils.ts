@@ -1,4 +1,5 @@
 import readline from 'node:readline/promises';
+import type { RestError } from '@azure/storage-blob';
 
 export function usage(err?: unknown): void {
   if (err) {
@@ -25,4 +26,8 @@ export async function prompt(q: string): Promise<string> {
   rl.close();
 
   return answer;
+}
+
+export function fmtRestError(err: RestError): string {
+  return `${err.statusCode ?? 'UNKNOWN'} | ${err.name} | ${err.details ?? 'UNKNOWN'}`;
 }

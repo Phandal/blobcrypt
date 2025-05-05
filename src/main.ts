@@ -1,17 +1,18 @@
 #! /usr/bin/env node
 
-import packageJSON from '../package.json' with { type: 'json' };
-import * as args from './args.js';
-import * as actions from './actions.js';
-import * as environment from './environment.js';
-import * as utils from './utils.js';
-import * as dotenv from 'dotenv';
 import * as fs from 'node:fs';
-import { ContainerClient, RestError } from '@azure/storage-blob';
 import { DefaultAzureCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
+import { ContainerClient, RestError } from '@azure/storage-blob';
+import * as dotenv from 'dotenv';
+import packageJSON from '../package.json' with { type: 'json' };
+import * as actions from './actions.js';
+import * as args from './args.js';
+import * as environment from './environment.js';
+import * as utils from './utils.js';
 
 dotenv.config();
+process.removeAllListeners('warning');
 
 async function main(): Promise<void> {
   const credentials = new DefaultAzureCredential();
@@ -89,7 +90,7 @@ async function main(): Promise<void> {
 main().catch((err) => {
   const message =
     err instanceof RestError
-      ? `Rest Error '${err.code}'`
+      ? `Rest Error ${utils.fmtRestError(err)}`
       : err instanceof Error
         ? err.message
         : 'unexpected fatal error';

@@ -1,5 +1,5 @@
-import { before, after, describe, it } from 'node:test';
 import assert from 'node:assert';
+import { after, before, describe, it } from 'node:test';
 import * as environment from './environment.js';
 
 describe('environment module', () => {
