@@ -1,12 +1,18 @@
+type EnvironmentVariables = {
+  CONTAINER_URLS: string[];
+  KEYVAULT_URL: string;
+  SECRET_NAME: string;
+};
+
 export const EnvVars = [
-  'CONTAINER_URL',
+  'CONTAINER_URLS',
   'KEYVAULT_URL',
   'SECRET_NAME',
 ] as const;
 
-export function read(): Record<(typeof EnvVars)[number], string> {
-  const env = {
-    CONTAINER_URL: '',
+export function read(): EnvironmentVariables {
+  const env: EnvironmentVariables = {
+    CONTAINER_URLS: [],
     KEYVAULT_URL: '',
     SECRET_NAME: '',
   };
@@ -18,7 +24,13 @@ export function read(): Record<(typeof EnvVars)[number], string> {
     if (!value) {
       missingVars.push(key);
     } else {
-      env[key] = value;
+      if (key === 'CONTAINER_URLS') {
+        for (const container of value.split(',')) {
+          env.CONTAINER_URLS.push(container);
+        }
+      } else {
+        env[key] = value;
+      }
     }
   }
 

@@ -8,6 +8,7 @@ describe('arg module', () => {
       action: 'encrypt',
       title: 'title',
       filepath: '/path',
+      jsonParse: false,
     };
     const encResult = args.parse(['encrypt', 'title', '/path']);
     assert.deepEqual(encResult, want);
@@ -16,9 +17,19 @@ describe('arg module', () => {
       action: 'decrypt',
       title: 'title',
       filepath: '/path',
+      jsonParse: false,
     };
     const decResult = args.parse(['decrypt', 'title', '/path']);
     assert.deepEqual(decResult, want);
+
+    want = {
+      action: 'fetch',
+      title: 'title',
+      filepath: '/path',
+      jsonParse: false,
+    };
+    const fetchResult = args.parse(['fetch', 'title', '/path']);
+    assert.deepEqual(fetchResult, want);
 
     want = args.VersionArgs;
     const verResult = args.parse(['version']);
@@ -33,6 +44,46 @@ describe('arg module', () => {
     assert.deepEqual(dashHelResult, want);
   });
 
+  it('ignores jsonParse when encrypting', () => {
+    const result = args.parse(['encrypt', 'id', 'path', 'true']);
+    const want = {
+      action: 'encrypt',
+      title: 'id',
+      filepath: 'path',
+      jsonParse: false,
+    };
+    assert.deepEqual(result, want);
+  });
+
+  it('defaults the jsonparse to false if invalid', () => {
+    const trueResult = args.parse(['decrypt', 'id', 'path', 'true']);
+    let want = {
+      action: 'decrypt',
+      title: 'id',
+      filepath: 'path',
+      jsonParse: true,
+    };
+    assert.deepEqual(trueResult, want);
+
+    const falseResult = args.parse(['decrypt', 'id', 'path', 'false']);
+    want = {
+      action: 'decrypt',
+      title: 'id',
+      filepath: 'path',
+      jsonParse: false,
+    };
+    assert.deepEqual(falseResult, want);
+
+    const ignoreResult = args.parse(['decrypt', 'id', 'path', 'nothing']);
+    want = {
+      action: 'decrypt',
+      title: 'id',
+      filepath: 'path',
+      jsonParse: false,
+    };
+    assert.deepEqual(ignoreResult, want);
+  });
+
   it('validates the number of args', () => {
     assert.throws(() => {
       args.parse(['title', '/path']);
@@ -40,13 +91,13 @@ describe('arg module', () => {
 
     assert.throws(
       () => {
-        args.parse(['encrypt', 'title', '/path', 'extra', 'args']);
+        args.parse(['encrypt', 'title', '/path', 'false', 'extra', 'args']);
       },
       args.UnexpectedArgumentError(['extra', 'args']),
     );
   });
 
-  it('validates the action is corrent', () => {
+  it('validates the action is correct', () => {
     assert.throws(() => {
       args.parse(['action', 'title', '/path']);
     }, args.InvalidActionError('action'));

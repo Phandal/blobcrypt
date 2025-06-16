@@ -34,4 +34,22 @@ describe('environment module', () => {
       environment.read();
     });
   });
+
+  it('should parse the CONTAINER_URLS into an array', () => {
+    process.env[environment.EnvVars[0]] = 'first,second';
+
+    const vars = environment.read();
+
+    for (const requiredEnvParam of environment.EnvVars) {
+      assert.notDeepEqual(
+        vars[requiredEnvParam],
+        undefined,
+        `${requiredEnvParam} is undefined`,
+      );
+
+      if (requiredEnvParam === 'CONTAINER_URLS') {
+        assert.deepEqual(vars[requiredEnvParam].length, 2);
+      }
+    }
+  });
 });

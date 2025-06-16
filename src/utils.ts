@@ -8,19 +8,43 @@ export function usage(err?: unknown): void {
     );
   }
   console.error('Usage:');
-  console.error('\tblobcrypt <ACTION> <BLOB_NAME> <OUTPUT_FILE>');
-  console.error("\t\tWhere ACTION is either 'encrypt' or 'decrypt'");
+  console.error('\tblobcrypt <ACTION> <BLOB_NAME> <OUTPUT_FILE> [JSON_PARSE]');
+  console.error("\t\tWhere ACTION is either 'encrypt', 'decrypt', or 'fetch'");
+  console.error("\t\tand JSON_PARSE is either 'true' or 'false'");
   console.error('');
   console.error('\t--version');
   console.error('\t--help');
   process.exit(1);
 }
 
-export async function prompt(q: string): Promise<string> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
+function createRLInterface(
+  input: NodeJS.ReadableStream = process.stdin,
+  output: NodeJS.WritableStream = process.stdout,
+): readline.Interface {
+  return readline.createInterface({
+    input,
+    output,
   });
+}
+
+export async function promptOptions(
+  q: string,
+  options: string[],
+): Promise<string> {
+  const rl = createRLInterface();
+
+  options.forEach((option, index) => {
+    console.log(`${index}. ${option}`);
+  });
+
+  const answer = await rl.question(q);
+  rl.close();
+
+  return answer;
+}
+
+export async function prompt(q: string): Promise<string> {
+  const rl = createRLInterface();
 
   const answer = await rl.question(q);
   rl.close();

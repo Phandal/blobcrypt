@@ -24,7 +24,7 @@ async function main(): Promise<void> {
     utils.usage(err);
     return;
   }
-  const { action, title, filepath } = result;
+  const { action, title, filepath, jsonParse } = result;
 
   if (action === 'version') {
     console.error(`blobcrypt ${packageJSON.version}`);
@@ -37,8 +37,25 @@ async function main(): Promise<void> {
   }
 
   const vars = environment.read();
+  const containerIndex = Number(
+    await utils.promptOptions(
+      'Please choose a container: ',
+      vars.CONTAINER_URLS,
+    ),
+  );
 
-  const containerClient = new ContainerClient(vars.CONTAINER_URL, credentials);
+  if (
+    Number.isNaN(containerIndex) ||
+    containerIndex > vars.CONTAINER_URLS.length ||
+    containerIndex < 0
+  ) {
+    console.error(`invalid container options: ${containerIndex}`);
+    process.exit(1);
+  }
+
+  const containerURL = vars.CONTAINER_URLS[containerIndex];
+
+  const containerClient = new ContainerClient(containerURL, credentials);
   const blobClient = containerClient.getBlobClient(title);
   const secretClient = new SecretClient(vars.KEYVAULT_URL, credentials);
   const secretResult = await secretClient.getSecret(vars.SECRET_NAME);
@@ -48,6 +65,24 @@ async function main(): Promise<void> {
   }
 
   switch (action) {
+    case 'fetch':
+      if (fs.existsSync(filepath)) {
+        const response = await utils.prompt(
+          `file '${filepath}' already exists. Overwrite [y/N]: `,
+        );
+
+        if (!response.toLowerCase().startsWith('y')) {
+          break;
+        }
+      }
+
+      if (!(await blobClient.exists())) {
+        console.error(`blob '${blobClient.url}' does not exist`);
+        process.exit(1);
+      }
+
+      await actions.fetch(filepath, jsonParse, blobClient);
+      break;
     case 'encrypt':
       if (!fs.existsSync(filepath)) {
         console.error(`file '${filepath}' does not exist`);
@@ -82,7 +117,12 @@ async function main(): Promise<void> {
         process.exit(1);
       }
 
-      await actions.decrypt(filepath, secretResult.value, blobClient);
+      await actions.decrypt(
+        filepath,
+        jsonParse,
+        secretResult.value,
+        blobClient,
+      );
       break;
   }
 }
@@ -95,5 +135,5 @@ main().catch((err) => {
         ? err.message
         : 'unexpected fatal error';
 
-  console.error(`Unknown Error: ${err.message}`);
+  console.error(`Unknown Error: ${message}`);
 });
