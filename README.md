@@ -11,7 +11,7 @@ npm i -g blobcrypt
 ```
 
 ## Usage
-The script uses environment variables to get the container_url, keyvault_url, and secret_name. The
+The script uses environment variables to get the container_urls, keyvault_url, and secret_name. The
 specific names are in the `.env.template` file. The script allows you to provide a `.env` file in
 the directory where you are running from, in order to set the variables per directory. You can also
 set these in your environment.
@@ -21,4 +21,6 @@ Provide the name of the blob from blob storage along with a path to write the ou
 blobcrypt encrypt blobname path/to/output/file
 # or
 blobcrypt decrypt blobname path/to/input/file
+# or
+blobcrypt fetch blobname path/to/input/file # fetching does not use any cryptography
 ```

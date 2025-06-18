@@ -76,7 +76,7 @@ async function main(): Promise<void> {
         }
       }
 
-      const response = await utils.prompt('JSON Pretty Print results [Y/n]: ');
+      const response = await utils.prompt('JSON Pretty Print results [y/N]: ');
       if (response.toLowerCase().startsWith('y')) {
         jsonParse = true;
       }
@@ -119,7 +119,7 @@ async function main(): Promise<void> {
         }
       }
 
-      const response = await utils.prompt('JSON Pretty Print results [Y/n]: ');
+      const response = await utils.prompt('JSON Pretty Print results [y/N]: ');
       if (response.toLowerCase().startsWith('y')) {
         jsonParse = true;
       }
