@@ -7,7 +7,7 @@ import * as pgp from 'openpgp';
  */
 export async function decrypt(
   filepath: string,
-  jsonParse: boolean | undefined,
+  jsonParse: boolean,
   password: string,
   blobClient: BlobClient,
 ): Promise<void> {
@@ -64,7 +64,7 @@ export async function encrypt(
  */
 export async function fetch(
   filepath: string,
-  jsonParse: boolean | undefined,
+  jsonParse: boolean,
   blobClient: BlobClient,
 ): Promise<void> {
   console.error('Fetching blob contents...');

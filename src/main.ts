@@ -24,7 +24,7 @@ async function main(): Promise<void> {
     utils.usage(err);
     return;
   }
-  const { action, title, filepath, jsonParse } = result;
+  const { action, title, filepath } = result;
 
   if (action === 'version') {
     console.error(`blobcrypt ${packageJSON.version}`);
@@ -65,15 +65,20 @@ async function main(): Promise<void> {
   }
 
   switch (action) {
-    case 'fetch':
+    case 'fetch': {
+      let jsonParse = false;
       if (fs.existsSync(filepath)) {
         const response = await utils.prompt(
           `file '${filepath}' already exists. Overwrite [y/N]: `,
         );
-
         if (!response.toLowerCase().startsWith('y')) {
           break;
         }
+      }
+
+      const response = await utils.prompt('JSON Pretty Print results [Y/n]: ');
+      if (response.toLowerCase().startsWith('y')) {
+        jsonParse = true;
       }
 
       if (!(await blobClient.exists())) {
@@ -83,7 +88,8 @@ async function main(): Promise<void> {
 
       await actions.fetch(filepath, jsonParse, blobClient);
       break;
-    case 'encrypt':
+    }
+    case 'encrypt': {
       if (!fs.existsSync(filepath)) {
         console.error(`file '${filepath}' does not exist`);
         process.exit(1);
@@ -101,15 +107,21 @@ async function main(): Promise<void> {
 
       await actions.encrypt(filepath, secretResult.value, blobClient);
       break;
-    case 'decrypt':
+    }
+    case 'decrypt': {
+      let jsonParse = false;
       if (fs.existsSync(filepath)) {
         const response = await utils.prompt(
           `file '${filepath}' already exists. Overwrite [y/N]: `,
         );
-
         if (!response.toLowerCase().startsWith('y')) {
           break;
         }
+      }
+
+      const response = await utils.prompt('JSON Pretty Print results [Y/n]: ');
+      if (response.toLowerCase().startsWith('y')) {
+        jsonParse = true;
       }
 
       if (!(await blobClient.exists())) {
@@ -124,6 +136,7 @@ async function main(): Promise<void> {
         blobClient,
       );
       break;
+    }
   }
 }
 
