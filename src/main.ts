@@ -57,12 +57,25 @@ async function main(): Promise<void> {
 
   const containerClient = new ContainerClient(containerURL, credentials);
   const blobClient = containerClient.getBlobClient(title);
+
   const secretClient = new SecretClient(vars.KEYVAULT_URL, credentials);
   const secretResult = await secretClient.getSecret(vars.SECRET_NAME);
   if (!secretResult.value) {
     console.error(`secret '${vars.SECRET_NAME}' does not exist`);
     process.exit(1);
   }
+  const publicKey = await secretClient.getSecret(vars.PGP_PUBLIC_KEY);
+  if (!publicKey.value) {
+    console.error(`pgp public key '${vars.SECRET_NAME}' does not exist`);
+    process.exit(1);
+  }
+  publicKey.value = Buffer.from(publicKey.value, 'base64').toString('utf8');
+  const privateKey = await secretClient.getSecret(vars.PGP_PRIVATE_KEY);
+  if (!privateKey.value) {
+    console.error(`pgp private key '${vars.SECRET_NAME}' does not exist`);
+    process.exit(1);
+  }
+  privateKey.value = Buffer.from(privateKey.value, 'base64').toString('utf8');
 
   switch (action) {
     case 'fetch': {
@@ -105,7 +118,7 @@ async function main(): Promise<void> {
         }
       }
 
-      await actions.encrypt(filepath, secretResult.value, blobClient);
+      await actions.encrypt(filepath, publicKey.value, blobClient);
       break;
     }
     case 'decrypt': {
@@ -133,6 +146,7 @@ async function main(): Promise<void> {
         filepath,
         jsonParse,
         secretResult.value,
+        privateKey.value,
         blobClient,
       );
       break;
