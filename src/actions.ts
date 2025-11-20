@@ -21,6 +21,7 @@ export async function decrypt(
     console.error('Attempting asymmetric decryption...');
     decryptedResult = await pgp.decrypt({
       message: await pgp.readMessage({ armoredMessage: blobContents }),
+      format: 'binary',
       decryptionKeys: await pgp.readPrivateKey({ armoredKey: privateKey }),
     });
   } catch (err) {
@@ -30,6 +31,7 @@ export async function decrypt(
     console.error('Attempting symmetric decryption...');
     decryptedResult = await pgp.decrypt({
       message: await pgp.readMessage({ armoredMessage: blobContents }),
+      format: 'binary',
       passwords: password,
     });
   }
@@ -57,12 +59,13 @@ export async function encrypt(
   blobClient: BlobClient,
 ): Promise<void> {
   console.error('Loading file contents...');
-  const input = fs.readFileSync(filepath).toString('utf8');
+  const input = fs.readFileSync(filepath);
 
   console.error('Encrypting file contents...');
   const encryptedResult = await pgp.encrypt({
-    message: await pgp.createMessage({ text: input }),
+    message: await pgp.createMessage({ binary: input }),
     encryptionKeys: await pgp.readKey({ armoredKey: publicKey }),
+    format: 'armored',
   });
 
   console.error('Writing encrypted contents to blob...');
