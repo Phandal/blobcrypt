@@ -17,11 +17,13 @@ export async function decrypt(
 
   console.error('Decrypting blob contents...');
   let decryptedResult = undefined;
+  const format: pgp.DecryptOptions['format'] = jsonParse ? 'utf8' : 'binary';
+
   try {
     console.error('Attempting asymmetric decryption...');
     decryptedResult = await pgp.decrypt({
       message: await pgp.readMessage({ armoredMessage: blobContents }),
-      format: 'binary',
+      format,
       decryptionKeys: await pgp.readPrivateKey({ armoredKey: privateKey }),
     });
   } catch (err) {
@@ -31,7 +33,7 @@ export async function decrypt(
     console.error('Attempting symmetric decryption...');
     decryptedResult = await pgp.decrypt({
       message: await pgp.readMessage({ armoredMessage: blobContents }),
-      format: 'binary',
+      format,
       passwords: password,
     });
   }
