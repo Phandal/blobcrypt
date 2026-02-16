@@ -1,29 +1,29 @@
 import * as assert from 'node:assert';
 import { describe, it } from 'node:test';
-import * as args from './args.js';
+import * as args from '../args.js';
 
 describe('arg module', () => {
   it('parsed args', () => {
     let want: args.ParseResult = {
       action: 'encrypt',
-      title: 'title',
-      filepath: '/path',
+      blobPath: 'title',
+      filePath: '/path',
     };
     const encResult = args.parse(['encrypt', 'title', '/path']);
     assert.deepEqual(encResult, want);
 
     want = {
       action: 'decrypt',
-      title: 'title',
-      filepath: '/path',
+      blobPath: 'title',
+      filePath: '/path',
     };
     const decResult = args.parse(['decrypt', 'title', '/path']);
     assert.deepEqual(decResult, want);
 
     want = {
       action: 'fetch',
-      title: 'title',
-      filepath: '/path',
+      blobPath: 'title',
+      filePath: '/path',
     };
     const fetchResult = args.parse(['fetch', 'title', '/path']);
     assert.deepEqual(fetchResult, want);
@@ -43,7 +43,7 @@ describe('arg module', () => {
 
   it('validates the number of args', () => {
     assert.throws(() => {
-      args.parse(['title', '/path']);
+      args.parse(['title']);
     }, args.MissingArgumentError);
 
     assert.throws(
@@ -58,5 +58,11 @@ describe('arg module', () => {
     assert.throws(() => {
       args.parse(['action', 'title', '/path']);
     }, args.InvalidActionError('action'));
+  });
+
+  it('validates the `filePath` is set for `encrypt` action', () => {
+    assert.throws(() => {
+      args.parse(['encrypt', 'title']);
+    }, args.MissingArgumentError);
   });
 });

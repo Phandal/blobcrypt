@@ -6,11 +6,11 @@ import * as pgp from 'openpgp';
  * Download a `blob` from blob storage and decrypt it, storing the result in the file specified by `filepath`.
  */
 export async function decrypt(
-  filepath: string,
   jsonParse: boolean,
   password: string,
   privateKey: string,
   blobClient: BlobClient,
+  filePath?: string,
 ): Promise<void> {
   console.error('Fetching blob contents...');
   const blobContents = (await blobClient.downloadToBuffer()).toString('utf8');
@@ -38,27 +38,34 @@ export async function decrypt(
     });
   }
 
-  console.error('Writing decrypted contents to file...');
-  if (jsonParse) {
-    fs.writeFileSync(
-      filepath,
-      JSON.stringify(JSON.parse(decryptedResult.data), null, 2),
+  const contents = Buffer.from(decryptedResult.data).toString('utf8');
+
+  if (filePath && jsonParse) {
+    console.error('Writing decrypted prettified contents to file...');
+    fs.writeFileSync(filePath, JSON.stringify(JSON.parse(contents), null, 2));
+    console.error(
+      `Wrote decrypted prettified blob (${contents.length} characters) to file '${filePath}'`,
     );
+  } else if (filePath && !jsonParse) {
+    console.error('Writing decrypted contents to file...');
+    fs.writeFileSync(filePath, contents);
+    console.error(
+      `Wrote decrypted blob (${contents.length} characters) to file '${filePath}'`,
+    );
+  } else if (!filePath && jsonParse) {
+    console.log(JSON.stringify(JSON.parse(contents), null, 2));
   } else {
-    fs.writeFileSync(filepath, decryptedResult.data);
+    console.log(contents);
   }
-  console.error(
-    `Wrote decrypted blob (${decryptedResult.data.length} characters) to file '${filepath}'`,
-  );
 }
 
 /**
  * Encrypt a file specified by 'filepath', uploading the result to a `blob` in blob storage.
  */
 export async function encrypt(
-  filepath: string,
   publicKey: string,
   blobClient: BlobClient,
+  filepath: string,
 ): Promise<void> {
   console.error('Loading file contents...');
   const input = fs.readFileSync(filepath);
@@ -82,23 +89,31 @@ export async function encrypt(
  * Download a `blob` from blob storage, storing the result in the file specified by `filepath`.
  */
 export async function fetch(
-  filepath: string,
   jsonParse: boolean,
   blobClient: BlobClient,
+  filePath?: string,
 ): Promise<void> {
   console.error('Fetching blob contents...');
   const blobContents = (await blobClient.downloadToBuffer()).toString('utf8');
 
-  console.error('Writing contents to file...');
-  if (jsonParse) {
+  if (filePath && jsonParse) {
+    console.error('Writing prettified contents to file...');
     fs.writeFileSync(
-      filepath,
+      filePath,
       JSON.stringify(JSON.parse(blobContents), null, 2),
     );
+    console.error(
+      `Wrote fetched prettified blob (${blobContents.length} characters) to file '${filePath}'`,
+    );
+  } else if (filePath && !jsonParse) {
+    console.error('Writing contents to file...');
+    fs.writeFileSync(filePath, blobContents);
+    console.error(
+      `Wrote fetched blob (${blobContents.length} characters) to file '${filePath}'`,
+    );
+  } else if (!filePath && jsonParse) {
+    console.log(JSON.stringify(JSON.parse(blobContents), null, 2));
   } else {
-    fs.writeFileSync(filepath, blobContents);
+    console.log(blobContents);
   }
-  console.error(
-    `Wrote fetched blob (${blobContents.length} characters) to file '${filepath}'`,
-  );
 }

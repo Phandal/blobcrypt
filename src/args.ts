@@ -1,7 +1,7 @@
 export type ParseResult = {
   action: 'encrypt' | 'decrypt' | 'version' | 'help' | 'fetch';
-  title: string;
-  filepath: string;
+  blobPath: string;
+  filePath?: string;
 };
 
 export const MissingArgumentError = new Error('missing arguments');
@@ -14,14 +14,12 @@ export const UnexpectedArgumentError = (args: string[]) =>
 
 export const VersionArgs: ParseResult = {
   action: 'version',
-  title: '',
-  filepath: '',
+  blobPath: '',
 };
 
 export const HelpArgs: ParseResult = {
   action: 'help',
-  title: '',
-  filepath: '',
+  blobPath: '',
 };
 
 /**
@@ -42,7 +40,7 @@ export function parse(argv: string[]): ParseResult {
     }
   }
 
-  if (argv.length < 3) {
+  if (argv.length < 2) {
     throw MissingArgumentError;
   }
 
@@ -50,15 +48,19 @@ export function parse(argv: string[]): ParseResult {
     throw UnexpectedArgumentError(argv.slice(3));
   }
 
-  const [action, title, filepath] = argv;
+  const [action, blobPath, filePath] = argv;
 
   if (action !== 'encrypt' && action !== 'decrypt' && action !== 'fetch') {
     throw InvalidActionError(action);
   }
 
+  if (action === 'encrypt' && !filePath) {
+    throw MissingArgumentError;
+  }
+
   return {
     action,
-    title,
-    filepath,
+    blobPath,
+    filePath,
   };
 }

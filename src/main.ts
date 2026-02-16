@@ -1,9 +1,10 @@
 #! /usr/bin/env node
 
+import assert from 'node:assert';
 import * as fs from 'node:fs';
 import { DefaultAzureCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
-import { ContainerClient, RestError } from '@azure/storage-blob';
+import { BlobClient, RestError } from '@azure/storage-blob';
 import * as dotenv from 'dotenv';
 import packageJSON from '../package.json' with { type: 'json' };
 import * as actions from './actions.js';
@@ -15,8 +16,6 @@ dotenv.config();
 process.removeAllListeners('warning');
 
 async function main(): Promise<void> {
-  const credentials = new DefaultAzureCredential();
-
   let result: args.ParseResult;
   try {
     result = args.parse(process.argv.slice(2));
@@ -24,7 +23,7 @@ async function main(): Promise<void> {
     utils.usage(err);
     return;
   }
-  const { action, title, filepath } = result;
+  const { action, blobPath, filePath } = result;
 
   if (action === 'version') {
     console.error(`blobcrypt ${packageJSON.version}`);
@@ -37,26 +36,26 @@ async function main(): Promise<void> {
   }
 
   const vars = environment.read();
-  const containerIndex = Number(
-    await utils.promptOptions(
-      'Please choose a container: ',
-      vars.CONTAINER_URLS,
-    ),
+  const index = await utils.promptOptions(
+    'Please choose a container: ',
+    vars.CONTAINER_URLS,
   );
+  const containerIndex = Number(index);
 
   if (
     Number.isNaN(containerIndex) ||
     containerIndex > vars.CONTAINER_URLS.length ||
     containerIndex < 0
   ) {
-    console.error(`invalid container options: ${containerIndex}`);
+    console.error(`invalid container options: ${index}`);
     process.exit(1);
   }
 
-  const containerURL = vars.CONTAINER_URLS[containerIndex];
+  const credentials = new DefaultAzureCredential();
 
-  const containerClient = new ContainerClient(containerURL, credentials);
-  const blobClient = containerClient.getBlobClient(title);
+  const containerURL = vars.CONTAINER_URLS[containerIndex];
+  const blobURL = utils.getBlobURL(containerURL, blobPath);
+  const blobClient = new BlobClient(blobURL, credentials);
 
   const secretClient = new SecretClient(vars.KEYVAULT_URL, credentials);
   const secretResult = await secretClient.getSecret(vars.SECRET_NAME);
@@ -64,12 +63,14 @@ async function main(): Promise<void> {
     console.error(`secret '${vars.SECRET_NAME}' does not exist`);
     process.exit(1);
   }
+
   const publicKey = await secretClient.getSecret(vars.PGP_PUBLIC_KEY);
   if (!publicKey.value) {
     console.error(`pgp public key '${vars.SECRET_NAME}' does not exist`);
     process.exit(1);
   }
   publicKey.value = Buffer.from(publicKey.value, 'base64').toString('utf8');
+
   const privateKey = await secretClient.getSecret(vars.PGP_PRIVATE_KEY);
   if (!privateKey.value) {
     console.error(`pgp private key '${vars.SECRET_NAME}' does not exist`);
@@ -80,9 +81,9 @@ async function main(): Promise<void> {
   switch (action) {
     case 'fetch': {
       let jsonParse = false;
-      if (fs.existsSync(filepath)) {
+      if (filePath && fs.existsSync(filePath)) {
         const response = await utils.prompt(
-          `file '${filepath}' already exists. Overwrite [y/N]: `,
+          `file '${filePath}' already exists. Overwrite [y/N]: `,
         );
         if (!response.toLowerCase().startsWith('y')) {
           break;
@@ -99,18 +100,19 @@ async function main(): Promise<void> {
         process.exit(1);
       }
 
-      await actions.fetch(filepath, jsonParse, blobClient);
+      await actions.fetch(jsonParse, blobClient, filePath);
       break;
     }
     case 'encrypt': {
-      if (!fs.existsSync(filepath)) {
-        console.error(`file '${filepath}' does not exist`);
+      assert(filePath, 'filepath is undefined in ecrypt');
+      if (!fs.existsSync(filePath)) {
+        console.error(`file '${filePath}' does not exist`);
         process.exit(1);
       }
 
       if (await blobClient.exists()) {
         const response = await utils.prompt(
-          `blob '${title}' already exists. Overwrite [y/N]: `,
+          `blob '${blobPath}' already exists. Overwrite [y/N]: `,
         );
 
         if (!response.toLowerCase().startsWith('y')) {
@@ -118,14 +120,14 @@ async function main(): Promise<void> {
         }
       }
 
-      await actions.encrypt(filepath, publicKey.value, blobClient);
+      await actions.encrypt(publicKey.value, blobClient, filePath);
       break;
     }
     case 'decrypt': {
       let jsonParse = false;
-      if (fs.existsSync(filepath)) {
+      if (filePath && fs.existsSync(filePath)) {
         const response = await utils.prompt(
-          `file '${filepath}' already exists. Overwrite [y/N]: `,
+          `file '${filePath}' already exists. Overwrite [y/N]: `,
         );
         if (!response.toLowerCase().startsWith('y')) {
           break;
@@ -143,11 +145,11 @@ async function main(): Promise<void> {
       }
 
       await actions.decrypt(
-        filepath,
         jsonParse,
         secretResult.value,
         privateKey.value,
         blobClient,
+        filePath,
       );
       break;
     }

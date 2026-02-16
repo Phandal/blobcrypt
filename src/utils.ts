@@ -19,7 +19,7 @@ export function usage(err?: unknown): void {
 
 function createRLInterface(
   input: NodeJS.ReadableStream = process.stdin,
-  output: NodeJS.WritableStream = process.stdout,
+  output: NodeJS.WritableStream = process.stderr,
 ): readline.Interface {
   return readline.createInterface({
     input,
@@ -34,7 +34,7 @@ export async function promptOptions(
   const rl = createRLInterface();
 
   options.forEach((option, index) => {
-    console.log(`${index}. ${option}`);
+    console.error(`${index}. ${option}`);
   });
 
   const answer = await rl.question(q);
@@ -54,4 +54,10 @@ export async function prompt(q: string): Promise<string> {
 
 export function fmtRestError(err: RestError): string {
   return `${err.statusCode ?? 'UNKNOWN'} | ${err.name} | ${err.details ?? 'UNKNOWN'}`;
+}
+
+export function getBlobURL(containerURL: string, blobPath: string): string {
+  const url = new URL(containerURL);
+  url.pathname = `${url.pathname.replace(/\/$/, '')}/${blobPath.replace(/^\//, '')}`;
+  return url.toString();
 }

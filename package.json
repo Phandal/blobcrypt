@@ -1,11 +1,11 @@
 {
   "name": "blobcrypt",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "main": "dist/main.js",
   "scripts": {
     "start": "node dist/main.js",
     "build": "tsc",
-    "test": "borp",
+    "test": "tsx --test-reporter spec  --test",
     "lint": "biome lint",
     "format": "biome format",
     "check": "biome check",
@@ -29,8 +29,8 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.13.10",
-    "borp": "^0.19.0",
     "rimraf": "^6.0.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.2"
   }
 }
