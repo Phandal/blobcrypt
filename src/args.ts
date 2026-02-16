@@ -26,6 +26,8 @@ export const HelpArgs: ParseResult = {
 
 /**
  * Parses the expected args from the command line
+ * @param {string[]} argv
+ * @returns {ParseResult}
  */
 export function parse(argv: string[]): ParseResult {
   if (argv.length === 1) {
