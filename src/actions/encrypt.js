@@ -53,15 +53,19 @@ const OPTIONS = {
   }
 };
 
+/**
+ * Reads all of stdin
+ * @returns {Promise<Buffer>}
+ */
 async function readInputFromStdin() {
-  let data = '';
-  process.stdin.setEncoding('utf8');
+  let data = []
+  // process.stdin.setEncoding('utf8');
 
   for await (const chunk of process.stdin) {
-    data += chunk;
+    data.push(chunk)
   }
 
-  return data;
+  return Buffer.concat(data);
 }
 
 /**
@@ -73,7 +77,7 @@ export async function encryptHandler(args) {
   /** @type {Config} */
   const config = argParse({ args, options: OPTIONS }, REQUIREDARGS);
 
-  config.input = config.input ? await readFile(config.input, 'utf8') : await readInputFromStdin()
+  const input = config.input ? await readFile(config.input) : await readInputFromStdin()
 
   const credentials = new DefaultAzureCredential();
 
@@ -86,7 +90,7 @@ export async function encryptHandler(args) {
   const publicKey = Buffer.from(secret.value, 'base64').toString('utf8');
 
   const encrypted = await pgp.encrypt({
-    message: await pgp.createMessage({ binary: config.input }),
+    message: await pgp.createMessage({ binary: input }),
     format: 'armored',
     encryptionKeys: await pgp.readKey({ armoredKey: publicKey }),
   });
