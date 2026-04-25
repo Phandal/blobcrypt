@@ -5,12 +5,12 @@ Work with PGP encrypted blobs from Azure Blob Storage
 You must have the [azure-cli](https://learn.microsoft.com/en-us/cli/azure/get-started-with-azure-cli) installed and you must be logged in (`az login`).
 
 ## Installation
-The following shows how to build this from source and install the script into your $PATH.
 ```bash
 npm i -g blobcrypt
 ```
 
 ## Usage
+When encrypting/decrypting, you must provide the pgp key name stored in an Azure KeyVault.
 ```bash
 # To encrypt a file in blob storage
 blobcrypt encrypt [options]

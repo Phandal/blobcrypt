@@ -102,4 +102,4 @@ main().catch((err) => {
   const msg = err instanceof Error ? err.message : 'unknown error';
   log('an error occurred:', msg);
   process.exit(1);
-})
+});

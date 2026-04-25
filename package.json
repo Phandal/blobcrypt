@@ -5,8 +5,7 @@
   "scripts": {
     "start": "node src/main.js",
     "tscheck": "tsc",
-    "test": "node --test-reporter dot  --test",
-    "clean": "rimraf dist"
+    "test": "node --test-reporter dot  --test"
   },
   "bin": {
     "blobcrypt": "src/main.js"
@@ -15,7 +14,7 @@
   "keywords": [],
   "author": "Bailey Feldewerd <bfeld.111@gmail.com>",
   "license": "ISC",
-  "description": "Encrypt/Decrypt (with PGP password/key) Azure Blob Storage blobs",
+  "description": "Encrypt/Decrypt (with PGP key) Azure Blob Storage blobs",
   "dependencies": {
     "@azure/identity": "^4.13.1",
     "@azure/keyvault-secrets": "^4.11.1",
@@ -24,7 +23,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "rimraf": "^6.1.3",
     "typescript": "^6.0.3"
   }
 }
