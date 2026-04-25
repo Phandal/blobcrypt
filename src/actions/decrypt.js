@@ -1,0 +1,103 @@
+import { writeFile } from 'node:fs/promises';
+import { AggregateAuthenticationError, DefaultAzureCredential } from '@azure/identity';
+import { ContainerClient, RestError } from '@azure/storage-blob';
+import { argParse, log, makeBlobStorageUrl, makeKeyVaultUrl, tryParseJSON } from '../common.js';
+import * as pgp from 'openpgp';
+import { SecretClient } from '@azure/keyvault-secrets';
+
+/** @import {ParseArgsConfig} from 'node:util' */
+
+/**
+ * @typedef {object} Config
+ * @prop {string} account
+ * @prop {string} container
+ * @prop {string} name
+ * @prop {string} secret-account
+ * @prop {string} secret-key
+ * @prop {string} [output]
+ */
+
+/** @type {(keyof Config)[]} */
+const REQUIREDARGS = ['account', 'container', 'name', 'secret-account', 'secret-key'];
+
+/** @type {ParseArgsConfig['options']} */
+const OPTIONS = {
+  account: {
+    type: 'string',
+    short: 'a',
+  },
+  container: {
+    type: 'string',
+    short: 'c',
+  },
+  name: {
+    type: 'string',
+    short: 'n',
+  },
+  'secret-account': {
+    type: 'string',
+    short: 's',
+  },
+  'secret-key': {
+    type: 'string',
+    short: 'k',
+  },
+  output: {
+    type: 'string',
+    short: 'o',
+  }
+};
+
+
+/**
+ * Downloads a file from blob storage and decrypts it
+ * @param {string[]} args
+ * @returns {Promise<void>}
+ */
+export async function decryptHandler(args) {
+  try {
+    /** @type {Config} */
+    const config = argParse({ args, options: OPTIONS }, REQUIREDARGS);
+    const credentials = new DefaultAzureCredential();
+
+    const secretClient = new SecretClient(makeKeyVaultUrl(config['secret-account']), credentials);
+    const secret = await secretClient.getSecret(config['secret-key']);
+    if (!secret.value) {
+      log(`secret key '${config['secret-key']}' is empty`);
+      process.exit(1);
+    }
+    const privateKey = Buffer.from(secret.value, 'base64').toString('utf8');
+
+    const containerClient = new ContainerClient(makeBlobStorageUrl(config.account, config.container), credentials);
+    const blobClient = containerClient.getBlobClient(config.name);
+
+    const raw = (await blobClient.downloadToBuffer()).toString('utf8');
+
+    const decrypted = await pgp.decrypt({
+      message: await pgp.readMessage({ armoredMessage: raw }),
+      format: 'binary',
+      decryptionKeys: await pgp.readPrivateKey({ armoredKey: privateKey }),
+    });
+
+    const contents = tryParseJSON(Buffer.from(decrypted.data).toString('utf8'));
+
+    if (config.output) {
+      await writeFile(config.output, contents);
+    } else {
+      console.log(contents);
+    }
+  } catch (err) {
+    if (err instanceof RestError) {
+      const msg = /** @type {any} */(err?.details)?.errorCode || err.message || 'unknown rest error';
+      log('rest error:', msg);
+      process.exit(1);
+    }
+
+    if (err instanceof AggregateAuthenticationError) {
+      log(`credentials unavailable. Did you 'az login'?`);
+      process.exit(1);
+    }
+
+    throw err;
+  }
+}

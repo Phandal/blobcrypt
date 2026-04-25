@@ -3,6 +3,7 @@
 import pkg from '../package.json' with { type: 'json' };
 import { log } from './common.js';
 import { fetchHandler } from './actions/fetch.js';
+import { decryptHandler } from './actions/decrypt.js';
 
 /**
  * Shows the usage message
@@ -53,6 +54,9 @@ async function main() {
       break;
     case 'fetch':
       await fetchHandler(process.argv.slice(3));
+      break;
+    case 'decrypt':
+      await decryptHandler(process.argv.slice(3));
       break;
     default:
       log(`unknown action '${action}'`);

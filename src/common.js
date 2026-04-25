@@ -45,7 +45,7 @@ export function argParse(config, requiredArgs) {
 
 
 /**
- * Formats a container into the correct url for a blob storage account
+ * Formats a account and container into the correct url for a blob storage account
  * @param {string} account
  * @param {string} container
  * @returns {string}
@@ -53,6 +53,15 @@ export function argParse(config, requiredArgs) {
 export function makeBlobStorageUrl(account, container) {
   return `https://${account}.blob.core.windows.net/${container}`;
 };
+
+/**
+ * Formats a secret-account into the correct url for a key vault accont
+ * @param {string} account
+ * @returns {string}
+ */
+export function makeKeyVaultUrl(account) {
+  return `https://${account}.vault.azure.net/`;
+}
 
 /**
  * Trys to parse the raw data as JSON. If it is JSON, the data is returned
