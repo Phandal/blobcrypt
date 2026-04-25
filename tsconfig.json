@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["ES2023"],
     "skipLibCheck": true,
     "strict": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2023",
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "outDir": "dist",
     "rootDir": "src",
-    "esModuleInterop": true
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "forceConsistentCasingInFileNames": true
   }
 }
