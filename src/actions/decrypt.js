@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { DefaultAzureCredential } from '@azure/identity';
 import { ContainerClient } from '@azure/storage-blob';
 import { argParse, log, makeBlobStorageUrl, makeKeyVaultUrl, tryParseJSON } from '../common.js';
@@ -15,6 +16,7 @@ import { SecretClient } from '@azure/keyvault-secrets';
  * @prop {string} secret-account
  * @prop {string} secret-key
  * @prop {string} [output]
+ * @prop {boolean} [force]
  */
 
 /** @type {(keyof Config)[]} */
@@ -41,6 +43,10 @@ const OPTIONS = {
   'secret-key': {
     type: 'string',
     short: 'k',
+  },
+  force: {
+    type: 'boolean',
+    short: 'f',
   },
   output: {
     type: 'string',
@@ -81,6 +87,11 @@ export async function decryptHandler(args) {
   const contents = tryParseJSON(Buffer.from(decrypted.data).toString('utf8'));
 
   if (config.output) {
+    if (existsSync(config.output) && !config.force) {
+      log(`file '${config.output}' already exitss. Use --force to overwrite`);
+      process.exit(1);
+    }
+
     await writeFile(config.output, contents);
   } else {
     console.log(contents);
