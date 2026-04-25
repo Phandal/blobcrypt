@@ -6,6 +6,7 @@ import { fetchHandler } from './actions/fetch.js';
 import { decryptHandler } from './actions/decrypt.js';
 import { AggregateAuthenticationError } from '@azure/identity';
 import { RestError } from '@azure/storage-blob';
+import { encryptHandler } from './actions/encrypt.js';
 
 /**
  * Shows the usage message
@@ -25,6 +26,7 @@ GLOBAL OPTIONS
   --account          The storage account name
   --container        The storage container name
   --name             The blob name
+  --force            Overwrite either the blob or file
 
 FETCH OPTIONS
   --output           Write any output to the following path. (Default: stdout)
@@ -75,6 +77,9 @@ async function main() {
       break;
     case 'decrypt':
       await decryptHandler(process.argv.slice(3));
+      break;
+    case 'encrypt':
+      await encryptHandler(process.argv.slice(3));
       break;
     default:
       log(`unknown action '${action}'`);
