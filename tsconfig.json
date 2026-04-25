@@ -12,5 +12,6 @@
     "allowJs": true,
     "checkJs": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "exclude": ["tests"]
 }
