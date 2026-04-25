@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
-import { DefaultAzureCredential } from '@azure/identity';
-import { ContainerClient } from '@azure/storage-blob';
-import { argParse, makeBlobStorageUrl, tryParseJSON } from '../common.js';
+import { AggregateAuthenticationError, DefaultAzureCredential } from '@azure/identity';
+import { ContainerClient, RestError } from '@azure/storage-blob';
+import { argParse, log, makeBlobStorageUrl, tryParseJSON } from '../common.js';
 
 /** @import {ParseArgsConfig} from 'node:util' */
 
@@ -43,19 +43,34 @@ const OPTIONS = {
  * @returns {Promise<void>}
  */
 export async function fetchHandler(args) {
-  /** @type {Config} */
-  const config = argParse({ args, options: OPTIONS }, REQUIREDARGS);
-  const credentials = new DefaultAzureCredential();
+  try {
+    /** @type {Config} */
+    const config = argParse({ args, options: OPTIONS }, REQUIREDARGS);
+    const credentials = new DefaultAzureCredential();
 
-  const containerClient = new ContainerClient(makeBlobStorageUrl(config.account, config.container), credentials);
-  const blobClient = containerClient.getBlobClient(config.name);
+    const containerClient = new ContainerClient(makeBlobStorageUrl(config.account, config.container), credentials);
+    const blobClient = containerClient.getBlobClient(config.name);
 
-  const raw = (await blobClient.downloadToBuffer()).toString('utf8');
-  const contents = tryParseJSON(raw);
+    const raw = (await blobClient.downloadToBuffer()).toString('utf8');
+    const contents = tryParseJSON(raw);
 
-  if (config.output) {
-    await writeFile(config.output, contents);
-  } else {
-    console.log(contents);
+    if (config.output) {
+      await writeFile(config.output, contents);
+    } else {
+      console.log(contents);
+    }
+  } catch (err) {
+    if (err instanceof RestError) {
+      const msg = /** @type {any} */(err?.details)?.errorCode || err.message || 'unknown rest error';
+      log('rest error:', msg);
+      process.exit(1);
+    }
+
+    if (err instanceof AggregateAuthenticationError) {
+      log(`credentials unavailable. Did you 'az login'?`);
+      process.exit(1);
+    }
+
+    throw err;
   }
 }

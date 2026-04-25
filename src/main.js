@@ -52,7 +52,7 @@ async function main() {
       version();
       break;
     case 'fetch':
-      fetchHandler(process.argv.slice(3));
+      await fetchHandler(process.argv.slice(3));
       break;
     default:
       log(`unknown action '${action}'`);
