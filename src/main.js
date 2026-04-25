@@ -4,6 +4,8 @@ import pkg from '../package.json' with { type: 'json' };
 import { log } from './common.js';
 import { fetchHandler } from './actions/fetch.js';
 import { decryptHandler } from './actions/decrypt.js';
+import { AggregateAuthenticationError } from '@azure/identity';
+import { RestError } from '@azure/storage-blob';
 
 /**
  * Shows the usage message
@@ -81,7 +83,18 @@ async function main() {
 }
 
 main().catch((err) => {
-  const msg = err instanceof Error ? err.message : undefined;
-  log('an unknown error occurred:', msg);
+  if (err instanceof RestError) {
+    const msg = /** @type {any} */(err?.details)?.errorCode || err.message || 'unknown rest error';
+    log('rest error:', msg);
+    process.exit(1);
+  }
+
+  if (err instanceof AggregateAuthenticationError) {
+    log(`credentials unavailable. Did you 'az login'?`);
+    process.exit(1);
+  }
+
+  const msg = err instanceof Error ? err.message : 'unknown error';
+  log('an error occurred:', msg);
   process.exit(1);
 })
