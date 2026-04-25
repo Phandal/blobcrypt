@@ -10,17 +10,33 @@ import { decryptHandler } from './actions/decrypt.js';
  */
 function usage() {
   console.log(`usage:
-    ${pkg.name} <action> [options]
+  ${pkg.name} <action> [options]
 
-  ACTIONS
-    help         Print this message
-    version      Print version information
-    encrypt      Encrypt a file into blob storage
-    decrypt      Decrypt a file from blob storage
-    fetch        Fetch a file from blob storage
+ACTIONS
+  help               Print this message
+  version            Print version information
+  fetch              Fetch a file from blob storage
+  decrypt            Decrypt a file from blob storage
+  encrypt            Encrypt a file into blob storage
 
-  OPTIONS
-    todo`
+GLOBAL OPTIONS
+  --account          The storage account name
+  --container        The storage container name
+  --name             The blob name
+
+FETCH OPTIONS
+  --output           Write any output to the following path. (Default: stdout)
+
+DECRYPT OPTIONS
+  --output           Write any output to the following path. (Default: stdout)
+  --secret-account   The keyvault account name
+  --secret-key       The name of the key to use as the pgp private key
+
+ENCRYPT OPTIONS
+  --input            Read file from the following path. (Default: stdin)
+  --secret-account   The keyvault account name
+  --secret-key       The name of the key to use as the pgp public key
+`
   );
 }
 
